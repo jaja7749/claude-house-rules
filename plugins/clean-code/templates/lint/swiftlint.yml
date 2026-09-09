@@ -1,0 +1,65 @@
+# Hard numbers referenced by CLAUDE.md. Change them here, not there.
+# warning = target (the save hook only reports it); error = ceiling (the save hook blocks).
+# Anything between the two must be explained at /finish.
+# Exceptions need a reason: // swiftlint:disable:next <rule>: why. The custom rule below enforces it.
+
+excluded:
+  - .build
+  - .tmp
+  - Pods
+  - node_modules
+  - "**/Generated"
+
+opt_in_rules:
+  - force_unwrapping              # force unwrap only where failure is a programming error, with a stated reason
+  - no_magic_numbers              # named constants, on the type they belong to
+  - closure_body_length
+  - discouraged_optional_boolean
+  - unneeded_parentheses_in_closure_argument
+
+disabled_rules:
+  - todo                          # TODOs need a trigger condition; that is a CLAUDE.md rule, not a lint rule
+  - line_length
+
+function_body_length:             # target 40, ceiling 60; comments and blanks excluded
+  warning: 40
+  error: 60
+
+function_parameter_count:         # target 4, ceiling 6; disable with a note for a plain data type's init
+  warning: 4
+  error: 6
+
+cyclomatic_complexity:            # stands in for the 3-level nesting rule; SwiftLint has no pure nesting-depth check
+  warning: 8
+  error: 12
+
+nesting:
+  type_level: 2
+  function_level: 2
+
+file_length:                      # target 400, ceiling 500; deliberate exceptions disable at the top of the file with a reason
+  warning: 400
+  error: 500
+  ignore_comment_only_lines: true
+
+type_body_length:                 # target 200, ceiling 300
+  warning: 200
+  error: 300
+
+large_tuple:
+  warning: 3
+
+identifier_name:
+  min_length: 2
+  excluded: [id, x, y, w, h, dx, dy, i, j]
+
+custom_rules:
+  banned_type_suffix:             # no Manager / Helper / Util as the head of a type name
+    regex: "\\b(class|struct|enum|actor|protocol)\\s+\\w*(Manager|Helper|Utils?)\\b"
+    message: "type names must not end in Manager / Helper / Util: say what it does"
+    severity: error
+
+  disable_without_reason:         # exceptions need a reason
+    regex: "swiftlint:disable(:next|:this|:previous)?\\s+[\\w, ]+\\s*$"
+    message: "swiftlint:disable needs a reason: // swiftlint:disable:next rule: why"
+    severity: error

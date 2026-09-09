@@ -1,0 +1,250 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "autoAllowBashIfSandboxed": true,
+    "filesystem": {
+      "allowRead": [
+        "~/.gitconfig",
+        "~/Library/Developer",
+        "~/Library/Caches",
+        "~/.swiftpm",
+        "~/.npm",
+        "~/.cache",
+        "~/.cargo",
+        "~/.rustup",
+        "~/go"
+      ],
+      "allowWrite": [
+        "~/Library/Developer/Xcode/DerivedData",
+        "~/Library/Developer/CoreSimulator",
+        "~/Library/Developer/XCTestDevices",
+        "~/Library/Caches/org.swift.swiftpm",
+        "~/Library/Caches/pip",
+        "~/Library/Caches/uv",
+        "~/.swiftpm/cache",
+        "~/.npm/_cacache",
+        "~/.npm/_npx",
+        "~/.cargo/registry",
+        "~/.cargo/git",
+        "~/go/pkg/mod",
+        "~/.cache"
+      ],
+      "denyWrite": [
+        "~/bin",
+        "~/.local/bin",
+        "~/.local/share/pnpm",
+        "~/.local/share/mise",
+        "~/.cargo/bin",
+        "~/.rustup",
+        "~/go/bin",
+        "~/.swiftpm/bin",
+        "~/.npm-global",
+        "~/.volta",
+        "~/.bun/bin",
+        "~/.deno/bin",
+        "~/.pyenv/shims",
+        "~/.rbenv/shims",
+        "~/.asdf/shims",
+        "~/.nvm"
+      ],
+      "denyRead": [
+        "~/**/.env",
+        "~/**/.env.local",
+        "~/**/.env.*.local",
+        "~/**/.env.production",
+        "~/**/.env.prod",
+        "~/**/.env.staging",
+        "~/**/.env.development",
+        "~/**/.env.dev",
+        "~/**/*.key",
+        "~/**/*.p12",
+        "~/**/*.pfx",
+        "~/**/*.keystore",
+        "~/**/*.jks",
+        "~/**/*private*.pem",
+        "~/**/*key*.pem",
+        "~/**/id_rsa",
+        "~/**/id_ed25519",
+        "~/**/id_ecdsa",
+        "~/**/credentials.json",
+        "~/**/service-account*.json",
+        "~/**/secrets.json",
+        "~/**/secrets.yaml",
+        "~/**/secrets.yml",
+        "~/**/secrets.toml"
+      ]
+    },
+    "network": {
+      "strictAllowlist": true,
+      "allowedDomains": [
+        "github.com",
+        "*.github.com",
+        "*.githubusercontent.com",
+        "registry.npmjs.org",
+        "*.npmjs.org",
+        "registry.yarnpkg.com",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "crates.io",
+        "*.crates.io",
+        "proxy.golang.org",
+        "sum.golang.org",
+        "rubygems.org",
+        "*.swift.org",
+        "developer.apple.com",
+        "download.developer.apple.com",
+        "devimages-cdn.apple.com",
+        "api.githubcopilot.com",
+        "objects.githubusercontent.com",
+        "uploads.github.com",
+        "pkg.actions.githubusercontent.com",
+        "productionresultssa0.blob.core.windows.net"
+      ]
+    },
+    "credentials": {
+      "files": [
+        {
+          "path": "~/.ssh",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.gnupg",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.aws",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.kube",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.netrc",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.git-credentials",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.config/gh",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.docker/config.json",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.npmrc",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.pypirc",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.cache/huggingface/token",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.cargo/credentials.toml",
+          "mode": "deny"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "AWS_ACCESS_KEY_ID",
+          "mode": "deny"
+        },
+        {
+          "name": "AWS_SECRET_ACCESS_KEY",
+          "mode": "deny"
+        },
+        {
+          "name": "AWS_SESSION_TOKEN",
+          "mode": "deny"
+        },
+        {
+          "name": "GITHUB_TOKEN",
+          "mode": "deny"
+        },
+        {
+          "name": "GH_TOKEN",
+          "mode": "deny"
+        },
+        {
+          "name": "NPM_TOKEN",
+          "mode": "deny"
+        },
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "mode": "deny"
+        },
+        {
+          "name": "OPENAI_API_KEY",
+          "mode": "deny"
+        }
+      ]
+    }
+  },
+  "permissions": {
+    "blockReadsOutsideWorkingDirectories": true,
+    "deny": [
+      "Read(~/.ssh/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.kube/**)",
+      "Read(~/.config/**)",
+      "Read(~/.netrc)",
+      "Read(~/.git-credentials)",
+      "Read(**/.env)",
+      "Read(**/.env.local)",
+      "Read(**/.env.*.local)",
+      "Read(**/.env.production)",
+      "Read(**/.env.development)",
+      "Read(**/.env.staging)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.p12)",
+      "Read(**/*.keystore)",
+      "Read(**/id_rsa)",
+      "Read(**/id_ed25519)",
+      "Read(**/credentials.json)",
+      "Read(**/service-account*.json)",
+      "Read(**/secrets.json)",
+      "Read(**/secrets.yaml)",
+      "Read(**/secrets.yml)",
+      "Edit(.git/**)",
+      "Edit(~/.zshrc)",
+      "Edit(~/.bashrc)",
+      "Edit(~/.bash_profile)",
+      "Edit(~/.zprofile)",
+      "Edit(~/.gitconfig)",
+      "Edit(~/.claude/**)",
+      "WebFetch(domain:pastebin.com)",
+      "WebFetch(domain:transfer.sh)",
+      "WebFetch(domain:file.io)",
+      "WebFetch(domain:webhook.site)"
+    ],
+    "ask": [
+      "Bash(git push)",
+      "Bash(git push *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|WebFetch|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/guard.py\" || exit 2"
+          }
+        ]
+      }
+    ]
+  }
+}

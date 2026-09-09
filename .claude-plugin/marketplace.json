@@ -1,0 +1,26 @@
+{
+  "name": "house-rules",
+  "owner": {
+    "name": "jaja7749",
+    "url": "https://github.com/jaja7749/claude-house-rules"
+  },
+  "metadata": {
+    "description": "Security boundaries and engineering discipline for Claude Code on a personal machine",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "safe-agent",
+      "source": "./plugins/safe-agent",
+      "category": "security",
+      "description": "Blocks privilege escalation, persistence, exfiltration and git/gh injection; confirms high-risk actions first; loads machine rules into every session"
+    },
+    {
+      "name": "clean-code",
+      "source": "./plugins/clean-code",
+      "category": "productivity",
+      "defaultEnabled": false,
+      "description": "Finishing checks, a project conventions template with matching linter configs, and lint on save"
+    }
+  ]
+}

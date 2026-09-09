@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "clean-code",
+  "displayName": "Clean Code",
+  "version": "1.0.0",
+  "description": "Finishing checks, project conventions template, and lint on save",
+  "author": {
+    "name": "jaja7749"
+  },
+  "homepage": "https://github.com/jaja7749/claude-house-rules",
+  "repository": "https://github.com/jaja7749/claude-house-rules",
+  "license": "MIT",
+  "keywords": [
+    "lint",
+    "code-quality",
+    "workflow",
+    "conventions"
+  ],
+  "defaultEnabled": false
+}

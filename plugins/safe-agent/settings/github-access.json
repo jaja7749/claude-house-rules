@@ -1,0 +1,15 @@
+{
+  "sandbox": {
+    "excludedCommands": [
+      "gh *",
+      "git push",
+      "git push *",
+      "git fetch",
+      "git fetch *",
+      "git pull",
+      "git pull *",
+      "git ls-remote",
+      "git ls-remote *"
+    ]
+  }
+}

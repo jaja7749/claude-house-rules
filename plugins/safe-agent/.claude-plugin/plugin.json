@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "safe-agent",
+  "displayName": "Safe Agent",
+  "version": "1.0.0",
+  "description": "Security boundary for Claude Code on a personal machine: a PreToolUse guard plus rules loaded into every session",
+  "author": {
+    "name": "jaja7749"
+  },
+  "homepage": "https://github.com/jaja7749/claude-house-rules",
+  "repository": "https://github.com/jaja7749/claude-house-rules",
+  "license": "MIT",
+  "keywords": [
+    "security",
+    "guardrails",
+    "hooks",
+    "sandbox",
+    "permissions"
+  ]
+}
