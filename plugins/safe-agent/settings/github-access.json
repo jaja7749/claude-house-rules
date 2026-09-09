@@ -9,7 +9,14 @@
       "git pull",
       "git pull *",
       "git ls-remote",
-      "git ls-remote *"
+      "git ls-remote *",
+      "git clone",
+      "git clone *",
+      "git submodule",
+      "git submodule *",
+      "git remote update",
+      "git remote update *",
+      "git lfs *"
     ]
   }
 }

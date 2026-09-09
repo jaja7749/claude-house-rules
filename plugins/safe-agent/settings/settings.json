@@ -7,6 +7,7 @@
     "filesystem": {
       "allowRead": [
         "~/.gitconfig",
+        "~/.config/git",
         "~/Library/Developer",
         "~/Library/Caches",
         "~/.swiftpm",
@@ -217,7 +218,8 @@
       "Read(**/secrets.json)",
       "Read(**/secrets.yaml)",
       "Read(**/secrets.yml)",
-      "Edit(.git/**)",
+      "Edit(.git/config)",
+      "Edit(.git/hooks/**)",
       "Edit(~/.zshrc)",
       "Edit(~/.bashrc)",
       "Edit(~/.bash_profile)",
@@ -232,19 +234,6 @@
     "ask": [
       "Bash(git push)",
       "Bash(git push *)"
-    ]
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash|WebFetch|mcp__.*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"$HOME/.claude/hooks/guard.py\" || exit 2"
-          }
-        ]
-      }
     ]
   }
 }

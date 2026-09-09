@@ -40,13 +40,19 @@ immediately. Report the filename only: no contents, no summary.
 For the actions below, write out four things: **what you will do, why, which files it affects, how to
 undo it**: and wait for the user to approve. You may prepare the command without running it.
 
-- Remote writes: `git push`, opening a PR, merging. History rewrites: `--amend`, `rebase`,
-  `reset --hard`.
-- Deleting or overwriting existing files, bulk renames, `rm -rf`, bulk `mv`, `chmod -R`, `chown -R`.
+- Anything that changes state off this machine: `git push`, opening a PR, merging, publishing a
+  package, deploying, writes through `aws`, `gcloud`, `az`, `kubectl` or `terraform`, sending data to
+  any host.
+- Deleting what git cannot bring back: untracked files, `git clean`, `rm -rf`, bulk `mv`, `chmod -R`,
+  `chown -R`.
 - Database writes, schema changes, `DROP`, `TRUNCATE`, `UPDATE` or `DELETE` without a `WHERE` clause.
 - Installing a new dependency (give the name, source, purpose and size).
 - Starting long-running services or anything that occupies a port.
 - Anything that costs money. Downloads over 100 MB.
+
+Local work that git can undo does not need approval: `add`, `commit`, `branch`, `merge`, `checkout`,
+`stash`, and history rewrites on unpushed work (`--amend`, `rebase`, `reset --hard`). Commit as often
+as the work warrants; the boundary is the push, not the commit.
 
 The guard forces a confirmation prompt on most of these, but a confirmation prompt is not the same as
 having written the plan.

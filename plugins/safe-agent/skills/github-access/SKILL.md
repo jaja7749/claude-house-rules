@@ -14,8 +14,12 @@ description: Makes gh and git remote commands work under the safe-agent sandbox:
 | `gh run list` returns nothing | same cause; not an Actions problem |
 | The github plugin's MCP server will not connect | `api.githubcopilot.com` missing from the network allowlist (present in current settings) |
 
-`git status`, `diff`, `add`, `commit` and `log` are local operations and work inside the sandbox. Only
-commands that need the network or credentials fail.
+`git status`, `diff`, `add`, `commit`, `log`, `branch`, `merge`, `rebase` and `reset` are local and work
+inside the sandbox without a prompt. Only commands that need the network or credentials fail.
+
+If `git commit` itself fails with `Unable to create '.git/index.lock': Operation not permitted`, that is
+not this problem: `~/.claude/settings.json` still carries the pre-1.1.0 `Edit(.git/**)` deny, which the
+sandbox mirrors as a write deny on the whole directory. Delete that line and restart.
 
 ## Enabling it
 
@@ -25,8 +29,12 @@ Re-run the installer in your own terminal with `--github`:
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/install-settings.sh" --github
 ```
 
-This adds `gh *` and git's remote commands to `sandbox.excludedCommands` so they run outside the
-sandbox, which is the only way they can reach credentials. Restart Claude Code afterwards.
+This adds `gh *` and git's remote commands — `push`, `fetch`, `pull`, `clone`, `ls-remote`,
+`submodule`, `remote update`, `lfs` — to `sandbox.excludedCommands` so they run outside the sandbox,
+which is the only way they can reach credentials. Restart Claude Code afterwards.
+
+Note what `clone` being on that list means: it runs unsandboxed, so it can write outside the working
+directory. Watch where you point it.
 
 **This is a deliberate opening**, which makes the guard its only gatekeeper:
 
@@ -49,15 +57,24 @@ reason.
 
 You can also leave this closed: let Claude commit inside the sandbox and run push and gh yourself.
 
-## Prerequisites
+## Prerequisites: pick any of the three transports
 
-```
-brew install gh
-gh auth login
-```
+All three work once `--github` is on, and none of them prompts for an ordinary `github.com` remote.
+Every setup step below is yours to run in your own terminal: the rules forbid Claude from completing a
+login or OAuth flow, and the guard blocks `gh auth login`, `gh auth setup-git` and `gh auth token`
+outright.
 
-Installing dependencies prompts for confirmation. `gh auth login` is yours to run: the rules forbid
-Claude from completing login or OAuth flows.
+| Transport | Remote | Setup |
+|---|---|---|
+| SSH | `git@github.com:owner/repo.git` | `ssh-keygen -t ed25519`, add the public key on GitHub, then `ssh-add --apple-use-keychain ~/.ssh/id_ed25519` |
+| HTTPS | `https://github.com/owner/repo.git` | `git config --global credential.helper osxkeychain`, then push once and paste a PAT |
+| gh | either | `brew install gh`, `gh auth login`, `gh auth setup-git` |
+
+Per-host keys go in `~/.ssh/config`, not `GIT_SSH_COMMAND=` — the guard blocks that variable because it
+is a code execution vector. Check which transport a repo is on with `git remote -v`; switching is
+`git remote set-url origin <url>`, which confirms first because it changes where pushes land.
+
+Installing `gh` prompts for confirmation like any other dependency.
 
 ## Companion plugins
 

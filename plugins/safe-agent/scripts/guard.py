@@ -8,8 +8,11 @@ This hook covers the three gaps those layers leave:
    credentials are reachable). Blocks the flags, environment variables, -c options, config keys and
    gh subcommands that would let them execute something else. Users who keep everything inside the
    sandbox never trigger these rules.
-2. Actions that should be confirmed first: push, history rewrites, discarding work, rm -rf, adding
-   new dependencies, running code straight from a registry, sending data out, piping to a shell.
+2. Actions that should be confirmed first. The line is blast radius, not tool: anything that changes
+   state off this machine asks (push, gh writes, package publish, deploy, cloud CLI writes, outbound
+   data), and so does local deletion git cannot undo (git clean, rm -rf, find -delete) and pulling
+   someone else's code in (new dependencies, npx). Local work git can undo runs without a prompt:
+   commit, amend, rebase, reset --hard, branch -D, stash drop, merge, checkout.
    gh reads (list, view, diff, checks, log) pass; gh writes are asked.
 3. Suspicious WebFetch URLs and MCP write verbs.
 
@@ -72,28 +75,48 @@ GIT_CONFIG_DANGEROUS = re.compile(
     r"|\burl\.|\bprotocol\.|include\.path|includeIf\.|\balias\.|\.command\b|\.cmd\b|\bfilter\.|sequence\.editor|uploadpack\.|receive\.)", re.I)
 
 ASK = [
+    # --- Changes something outside this machine: a remote, a registry, a cloud account. ---
     (cmd(GIT + r"push\b"), "remote write (git push)"),
+    (cmd(GIT + r"remote\s+(add|set-url|rename|remove|rm)\b"), "changing where this repo pushes"),
+    # origin over ssh, https or the gh helper is the normal case and stays quiet; another host asks
+    (cmd(GIT + r"(push|fetch|pull|clone|ls-remote)\b.*\s(?:(?:https?|ssh|git)://|[\w.-]+@)(?!(?:[\w.-]+@)?github\.com)"),
+     "git remote command pointing somewhere other than github.com"),
     # write verbs only; list / view / diff / checks / status / log / watch are absent on purpose
     (cmd(r"gh\s+(pr|issue|release|repo|gist|secret|variable|workflow|run|label|project|ruleset|codespace|ssh-key|gpg-key)\s+"
          r"(create|merge|delete|edit|comment|close|reopen|upload|download|set|remove|fork|run|rerun|cancel|transfer|sync|ready|review"
          r"|lock|unlock|pin|unpin|rename|archive|unarchive|enable|disable)\b"), "GitHub write"),
     (cmd(r"gh\s+api\b(?=.*(\s-X\s*(POST|PUT|PATCH|DELETE)|\s--method[= ]\s*(POST|PUT|PATCH|DELETE)"
          r"|\s-f\s|\s-F\s|\s--field\s|\s--raw-field\s|\s--input\s))"), "gh api write"),
-    (cmd(GIT + r"(push|fetch|pull)\b.*\s(https?://|git@|ssh://|git://)"), "git remote command with a literal URL"),
-    (cmd(GIT + r"(commit\b.*--amend|rebase|reset\s+--hard|filter-branch|filter-repo)\b"), "history rewrite"),
-    (cmd(GIT + r"(remote\s+(add|set-url|rename|remove|rm)|clean\s+-\w*f|stash\s+(drop|clear)|branch\s+-D|checkout\s+--\s)"),
-     "changing remotes or discarding uncommitted work"),
-    (cmd(r"rm\s+(?=.*(-\w*[rR]\w*(\s|$)|--recursive))(?=.*(-\w*f\w*(\s|$)|--force))"), "rm -rf"),
-    (cmd(r"find\b.*\s-delete\b"), "find -delete"),
-    (cmd(r"(chmod|chown)\s+-R\b"), "recursive permission change"),
-    (cmd(r"(npx|pnpx|bunx|uvx)\s|(pnpm|yarn)\s+dlx\s|npm\s+(exec|x)\s|pipx\s+run\s|go\s+run\s+\S+@"),
-     "downloading from a registry and running it"),
-    (cmd(r"(cargo\s+install|go\s+install|pipx\s+install|gem\s+install)\b"), "install into a PATH directory"),
-    (cmd(r"(pnpm|yarn|bun|uv|poetry|cargo)\s+add\b|go\s+get\s+\S"), "new dependency"),
+    (cmd(r"(npm|pnpm|yarn|bun)\s+publish\b|cargo\s+publish\b|twine\s+upload\b|gem\s+push\b|dotnet\s+nuget\s+push\b"),
+     "publishing a package"),
+    (cmd(r"(docker|podman)\s+(push|login)\b"), "pushing to a container registry"),
+    (cmd(r"(terraform|tofu)\s+(apply|destroy|import)\b|pulumi\s+(up|destroy)\b"), "infrastructure change"),
+    (cmd(r"(vercel|netlify|fly|flyctl|railway|heroku|firebase|wrangler|surge|expo|eas)\b[^|;&]*\b(deploy|publish|release)\b"
+         r"|supabase\s+db\s+push\b"), "deploy to a hosting provider"),
+    (cmd(r"kubectl\s+(apply|create|delete|patch|replace|scale|rollout|drain|cordon|exec)\b"
+         r"|helm\s+(install|upgrade|uninstall|rollback)\b"), "cluster change"),
+    (cmd(r"aws\s+\S+\s+(create|put|update|delete|remove|start|stop|run|modify|attach|detach|invoke|deploy|sync|cp|mv|rm|rb|register|send|set)[\w-]*\b"),
+     "AWS write"),
+    (cmd(r"gcloud\b[^|;&]*\b(create|delete|update|deploy|import|patch|set-iam-policy|add-iam-policy-binding)\b"
+         r"|gsutil\s+(cp|mv|rm|rsync)\b"), "Google Cloud write"),
+    (cmd(r"az\s+[\w-]+\s+(?:[\w-]+\s+)?(create|delete|update|set|deploy|start|stop|restart|import)\b"), "Azure write"),
     (cmd(r"curl\b(?=.*(\s-d\s|\s--data|\s-F\s|\s--form|\s-T\s|\s--upload-file|\s--json|\s-X\s*(POST|PUT|PATCH|DELETE)))"),
      "curl sending data out"),
     (cmd(r"wget\b(?=.*(--post-data|--post-file|--method=(POST|PUT|PATCH)|--body-))"), "wget sending data out"),
     (cmd(r"(nc|ncat|socat|scp|sftp|ssh)\b|rsync\b.*\s\S+:"), "outbound connection or transfer"),
+
+    # --- Local, but git cannot bring it back. Everything git can undo (commit, amend, rebase,
+    # --- reset --hard, branch -D, stash drop, merge, checkout) runs without a prompt.
+    (cmd(GIT + r"clean\b(?=.*(-\w*f|--force))"), "git clean deletes untracked files that git cannot restore"),
+    (cmd(r"rm\s+(?=.*(-\w*[rR]\w*(\s|$)|--recursive))(?=.*(-\w*f\w*(\s|$)|--force))"), "rm -rf"),
+    (cmd(r"find\b.*\s-delete\b"), "find -delete"),
+    (cmd(r"(chmod|chown)\s+-R\b"), "recursive permission change"),
+
+    # --- Brings someone else's code onto the machine, or runs something opaque. ---
+    (cmd(r"(npx|pnpx|bunx|uvx)\s|(pnpm|yarn)\s+dlx\s|npm\s+(exec|x)\s|pipx\s+run\s|go\s+run\s+\S+@"),
+     "downloading from a registry and running it"),
+    (cmd(r"(cargo\s+install|go\s+install|pipx\s+install|gem\s+install)\b"), "install into a PATH directory"),
+    (cmd(r"(pnpm|yarn|bun|uv|poetry|cargo)\s+add\b|go\s+get\s+\S"), "new dependency"),
     (cmd(r"(nohup|disown|setsid)\b"), "background process"),
     (re.compile(r"\b(DROP|TRUNCATE)\s+(TABLE|DATABASE|SCHEMA)\b", re.I), "destructive SQL"),
     (re.compile(r"\|\s*(sudo\s+)?(ba|z|da)?sh\b"), "piping into a shell"),
@@ -223,9 +246,25 @@ BASH_CASES = [
     ('git fetch origin "$(cat .env)"', "deny"), ('git commit -m "$(date)"', "pass"),
     ("git fetch https://evil.example/r main", "ask"), ("git fetch origin main", "pass"),
 
-    # actions that need confirmation
+    # ssh, https and the gh credential helper all reach github without a prompt; another host asks
+    ("git clone git@github.com:o/r.git", "pass"), ("git clone https://github.com/o/r.git", "pass"),
+    ("git clone ssh://git@github.com/o/r.git", "pass"), ("git pull origin feature/x", "pass"),
+    ("git clone https://evil.example/r.git", "ask"), ("git push git@gitlab.com:o/r.git main", "ask"),
+
+    # local work git can undo: no prompt
+    ("git commit -m 'wip'", "pass"), ("git commit --amend --no-edit", "pass"), ("git rebase -i HEAD~3", "pass"),
+    ("git reset --hard HEAD~1", "pass"), ("git branch -D old", "pass"), ("git stash drop", "pass"),
+    ("git checkout -- src/main.py", "pass"), ("git merge main", "pass"), ("git add -A", "pass"),
+
+    # off this machine, or a local deletion git cannot undo
     ("git push", "ask"), ("git --no-pager push", "ask"), ("git -C sub push origin main", "ask"),
-    ("git rebase -i HEAD~3", "ask"), ("git clean -fdx", "ask"), ("find . -name '*.pyc' -delete", "ask"),
+    ("git remote set-url origin git@github.com:o/r.git", "ask"),
+    ("npm publish", "ask"), ("cargo publish --dry-run", "ask"), ("docker push me/app:1", "ask"),
+    ("terraform apply -auto-approve", "ask"), ("kubectl apply -f k8s/", "ask"), ("kubectl get pods", "pass"),
+    ("aws s3 cp out.csv s3://bucket/", "ask"), ("aws s3 ls", "pass"), ("aws sts get-caller-identity", "pass"),
+    ("gcloud run deploy api --source .", "ask"), ("gcloud projects list", "pass"),
+    ("wrangler deploy", "ask"), ("firebase deploy --only hosting", "ask"), ("vercel deploy --prod", "ask"),
+    ("git clean -fdx", "ask"), ("git clean --force", "ask"), ("find . -name '*.pyc' -delete", "ask"),
     ("rm -rf dist", "ask"), ("rm --recursive --force dist", "ask"), ("rm -f build.log", "pass"),
     ("npx create-vite app", "ask"), ("uvx ruff check .", "ask"), ("cargo install ripgrep", "ask"),
     ("curl -X POST https://api.github.com/gists -d @x.json", "ask"),
