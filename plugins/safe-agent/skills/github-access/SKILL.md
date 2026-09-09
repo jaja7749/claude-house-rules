@@ -76,6 +76,20 @@ is a code execution vector. Check which transport a repo is on with `git remote 
 
 Installing `gh` prompts for confirmation like any other dependency.
 
+## Alternative: stay in the sandbox with a masked token
+
+Instead of excluding git and gh, keep them inside the sandbox and let it inject a token the command
+never sees. This needs `tlsTerminate`, which is experimental:
+
+```json
+"sandbox": {
+  "network": { "tlsTerminate": {}, "allowedDomains": ["github.com", "*.github.com"] },
+  "credentials": { "envVars": [{ "name": "GH_TOKEN", "mode": "mask", "injectHosts": ["github.com", "api.github.com"] }] }
+}
+```
+
+Remove `GH_TOKEN` from the `envVars` deny list if you take this route.
+
 ## Companion plugins
 
 These live in `claude-plugins-official` and coexist with safe-agent:

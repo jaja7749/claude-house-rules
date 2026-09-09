@@ -9,7 +9,7 @@ known limits are documented in the [repository README](../../README.md); inside 
 | `hooks/hooks.json` | SessionStart rule injection, PreToolUse guard |
 | `scripts/guard.py` | The guard itself. `--test` runs the full case list |
 | `scripts/inject-rules.py` | Loads `rules/machine-rules.md` into every session |
-| `scripts/install-settings.sh` | Merges sandbox and permissions into `~/.claude/settings.json`; `--github` also enables GitHub access |
+| `scripts/install-settings.sh` | Merges sandbox and permissions into `~/.claude/settings.json`. `--github` also enables GitHub access; `--mode=migrate` additionally removes superseded entries, which merging alone cannot; `-h` lists every mode |
 | `rules/machine-rules.md` | Personal-data masking, the plan-first list, prompt-injection handling |
 | `settings/settings.json` | Source of the sandbox and permissions settings |
 | `settings/github-access.json` | Overlay letting gh and git remote commands run outside the sandbox |

@@ -34,12 +34,21 @@ All notable changes to this project are documented here. This project follows
   `github-access.json`, so cloning and updating a private repo works over all three transports.
 - `safe-agent`: `~/.config/git` added to `sandbox.filesystem.allowRead`, silencing the
   `unable to access '…/.config/git/ignore': Operation not permitted` warning on every git command.
+- `safe-agent`: `install-settings.sh` gained `--mode`. Merging can only ever add, so an entry a later
+  version supersedes used to have to be deleted by hand; `--mode=migrate` merges and then removes the
+  ones this release supersedes, naming each and saying why. `add` keeps 1.0.x behaviour, `keep` never
+  overwrites an existing value, `none` prints what each mode would change and writes nothing. The
+  mode is asked interactively when not given, `-h` lists them, and `--yes` (with an explicit
+  `--mode`) skips the final confirmation for unattended use.
 
 ### Upgrading from 1.0.x
 
-`install-settings.sh` only ever adds, so re-running it will not remove the old `Edit(.git/**)` rule —
-and while that line is in `~/.claude/settings.json`, `git commit` stays broken. Delete it by hand,
-then re-run the installer and restart Claude Code.
+Updating the plugin does not touch `~/.claude/settings.json`, and merging only ever adds, so a plain
+re-run leaves the old `Edit(.git/**)` rule in place — and while that line is there, `git commit` stays
+broken. Run `install-settings.sh --mode=migrate` (the interactive default): it merges, then removes
+that rule and the stale 1.0.0 `PreToolUse` hook, showing the full diff before it writes and backing
+the file up to `~/.claude/settings.json.bak`. Restart Claude Code afterwards — permissions and the
+sandbox are read at startup, so a running session keeps the old rules.
 
 ## [1.0.1]
 
